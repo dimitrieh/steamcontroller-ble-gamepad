@@ -1,0 +1,898 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gamepad Test Guide</title>
+<style>
+  :root {
+    --bg: #0e141b;
+    --bg-card: rgba(255,255,255,0.03);
+    --bg-card-hover: rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.12);
+    --text: #b8bcbf;
+    --text-bright: #e1e3e5;
+    --text-dim: #8b929a;
+    --blue: #1a9fff;
+    --green: #59bf40;
+    --red: #d94126;
+    --yellow: #e8a43a;
+    --mono: 'Consolas', 'SF Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.05rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+       color: var(--text-bright); margin: 0 0 4px; }
+  .sub { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; }
+  section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+            padding: 16px; margin-top: 16px; }
+  h2 { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+       color: var(--text-dim); margin: 0 0 12px; }
+  h3 { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+       color: var(--text-dim); margin: 16px 0 6px; }
+  p { margin: 0 0 8px; }
+  ol, ul { margin: 0 0 8px; padding-left: 20px; }
+  li { margin: 2px 0; }
+  a { color: var(--blue); }
+  code { font-family: var(--mono); font-size: 0.85em; color: var(--text-bright); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  button {
+    background: transparent; color: var(--text-bright); border: 1px solid var(--border-hover);
+    border-radius: 6px; padding: 7px 14px; font: inherit; font-size: 0.8rem; cursor: pointer;
+  }
+  button:hover:not(:disabled) { background: var(--bg-card-hover); }
+  button.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+  button.pass { border-color: var(--green); color: var(--green); }
+  button.pass.chosen { background: var(--green); color: #fff; }
+  button.fail { border-color: var(--red); color: var(--red); }
+  button.fail.chosen { background: var(--red); color: #fff; }
+  button.danger { color: var(--red); border-color: rgba(217,65,38,0.4); }
+  button:disabled { opacity: 0.4; cursor: default; }
+
+  /* Guide */
+  .progress { display: flex; align-items: center; gap: 12px; font-size: 0.8rem; }
+  .progress .track { flex: 1; }
+  .step { border: 1px solid var(--border); border-radius: 8px; margin-top: 10px; overflow: hidden; }
+  .step.current { border-color: var(--blue); }
+  .step > summary {
+    list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; color: var(--text-bright);
+  }
+  .step > summary::-webkit-details-marker { display: none; }
+  .step > summary:hover { background: var(--bg-card-hover); }
+  .num { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; flex: none;
+         font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-hover); color: var(--text-dim); }
+  .step.pass .num { background: var(--green); border-color: var(--green); color: #fff; }
+  .step.fail .num { background: var(--red); border-color: var(--red); color: #fff; }
+  .step.current .num { border-color: var(--blue); color: var(--blue); }
+  .step-title { flex: 1; }
+  .chip { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); }
+  .step.pass .chip { color: var(--green); } .step.fail .chip { color: var(--red); }
+  .step-body { padding: 4px 14px 14px 52px; }
+  .expect { border-left: 3px solid var(--green); padding: 6px 10px; background: rgba(89,191,64,0.06);
+            border-radius: 0 6px 6px 0; margin: 8px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin: 6px 0 10px; }
+  th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--text-dim); font-weight: 600; }
+  textarea { width: 100%; min-height: 54px; background: rgba(0,0,0,0.25); color: var(--text-bright);
+             border: 1px solid var(--border-hover); border-radius: 6px; padding: 8px; font: inherit; font-size: 0.8rem; }
+  .verdict { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
+  .checks { list-style: none; padding: 0; margin: 8px 0; }
+  .checks li { display: flex; gap: 8px; align-items: baseline; font-size: 0.82rem; }
+  .checks .mark { width: 16px; flex: none; text-align: center; }
+  .checks label { display: flex; gap: 8px; align-items: baseline; cursor: pointer; }
+  .callout { font-size: 0.8rem; padding: 8px 10px; border-radius: 6px; background: rgba(232,164,58,0.1);
+             border: 1px solid rgba(232,164,58,0.3); color: var(--text-bright); margin: 8px 0; }
+
+  /* Instruments */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; font-size: 0.8rem; margin: 0; }
+  .kv dt { color: var(--text-dim); }
+  .kv dd { margin: 0; font-family: var(--mono); color: var(--text-bright); overflow-wrap: anywhere; }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+          padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border-hover); color: var(--text-dim); }
+  .pill.on { color: #fff; border-color: var(--green); background: rgba(89,191,64,0.25); }
+  .pill.warn { color: #fff; border-color: var(--yellow); background: rgba(232,164,58,0.25); }
+  .pill.bad { color: #fff; border-color: var(--red); background: rgba(217,65,38,0.3); }
+  .status-line { font-size: 0.8rem; margin-top: 10px; min-height: 1.2em; }
+  .ok { color: var(--green); } .warn { color: var(--yellow); } .bad { color: var(--red); }
+  .buttons { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; }
+  .btn { font-size: 0.7rem; text-align: center; padding: 6px 4px; border-radius: 5px;
+         border: 1px solid var(--border-hover); color: var(--text-dim); transition: background 60ms; }
+  .btn.seen { border-color: var(--green); color: var(--text-bright); }
+  .btn.down { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .pads { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px; }
+  .pad { text-align: center; font-size: 0.7rem; color: var(--text-dim); }
+  .pad svg { display: block; width: 110px; height: 110px; }
+  .pad .val { font-family: var(--mono); font-size: 0.65rem; }
+  .bars { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+  .bar { font-size: 0.7rem; color: var(--text-dim); }
+  .track { height: 10px; background: var(--bg-card-hover); border-radius: 5px; overflow: hidden; margin-top: 3px; position: relative; }
+  .fill { height: 100%; width: 0; background: var(--blue); }
+  .progress .fill { background: var(--green); }
+  .axis .fill { position: absolute; left: 50%; }
+  pre { font-family: var(--mono); font-size: 0.72rem; background: rgba(0,0,0,0.3); border-radius: 6px;
+        padding: 10px; margin: 0; max-height: 220px; overflow: auto; white-space: pre-wrap; }
+  .note { font-size: 0.75rem; color: var(--text-dim); margin: 8px 0 0; }
+  @media (max-width: 560px) {
+    .kv { grid-template-columns: 1fr; }
+    .step-body { padding-left: 14px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Steam Controller</h1>
+  <div class="sub">Gamepad firmware · test guide</div>
+
+  <section>
+    <h2>Test guide</h2>
+    <p>Work through the steps in order and mark each one. Stop at the first step that fails, then click
+      <b>Copy report</b> (bottom of the page) and attach it to a GitHub issue. Each step checks one more link in the
+      chain, so the first failure narrows down the cause.</p>
+    <div class="progress"><span id="progressText">0 of 7 passed</span>
+      <div class="track"><div class="fill" id="progressFill"></div></div>
+      <button id="resetGuide">Start over</button></div>
+    <p class="note" id="buildLine">Loading firmware build info…</p>
+    <div id="steps"></div>
+    <div class="callout"><b>After every reflash:</b> the flash wipes the controller's stored pairings. Before
+      pairing again, <b>forget "Steam Controller"</b> on every computer and TV it was paired with. A host that
+      still has the old pairing fails to reconnect and does not say why.</div>
+  </section>
+
+  <section id="diag">
+    <h2>Radio diagnostics (Web Bluetooth)</h2>
+    <div class="row">
+      <button class="primary" id="connect">Connect to controller</button>
+      <button id="disconnect" disabled>Disconnect</button>
+      <span style="flex:1"></span>
+      <button id="cmdResync" disabled>Resync</button>
+      <button id="cmdHaptic" disabled>Buzz</button>
+    </div>
+    <div class="status-line" id="btStatus">Not connected.</div>
+    <p class="note" id="btSupport"></p>
+    <div class="grid" style="margin-top:12px">
+      <div><h3>Link health</h3><div class="pills" id="flags"></div><dl class="kv" id="health" style="margin-top:10px"></dl></div>
+      <div><h3>Decoder and host</h3><dl class="kv" id="decoder"></dl></div>
+    </div>
+  </section>
+
+  <section id="live">
+    <h2>Live controller state, as the radio decoded it</h2>
+    <p class="note" style="margin-top:0">Buttons turn green once seen, so you can check them all off.</p>
+    <div class="buttons" id="liveButtons"></div>
+    <div class="pads">
+      <div class="pad"><svg viewBox="-110 -110 220 220" id="padStick"></svg>Joystick<div class="val" id="valStick">–</div></div>
+      <div class="pad"><svg viewBox="-110 -110 220 220" id="padLeft"></svg>Left pad<div class="val" id="valLeft">–</div></div>
+      <div class="pad"><svg viewBox="-110 -110 220 220" id="padRight"></svg>Right pad<div class="val" id="valRight">–</div></div>
+      <div class="bars">
+        <div class="bar">Left trigger <span id="valLT"></span><div class="track"><div class="fill" id="barLT"></div></div></div>
+        <div class="bar">Right trigger <span id="valRT"></span><div class="track"><div class="fill" id="barRT"></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="gamepad">
+    <h2>What this computer sees (Gamepad API)</h2>
+    <div class="status-line" id="gpStatus" style="margin-top:0">No gamepad yet. Pair the controller in your OS Bluetooth settings, then press a button.</div>
+    <div id="gpView"></div>
+    <p class="note">On Linux and Android the expected order is 0 A · 1 B · 3 X · 4 Y · 6 LB · 7 RB · 8 LT click ·
+      9 RT click · 10 Back · 11 Start · 12 Steam · 13 stick click · 14 right-pad click, then grips and left-pad click.
+      Windows and macOS may number them differently. What matters is that every physical button lights exactly one
+      entry.</p>
+  </section>
+
+  <section id="report">
+    <h2>Report</h2>
+    <div class="row">
+      <button class="primary" id="copyReport">Copy report</button>
+      <span class="note" id="copyNote" style="margin:0"></span>
+    </div>
+    <pre id="log" style="margin-top:12px"></pre>
+  </section>
+</main>
+
+<script>
+'use strict';
+
+// ---- Constants ---------------------------------------------------------------
+
+const uuid = (n) => `5c0e${n.toString(16).padStart(4, '0')}-7b3a-4e2d-9a51-3d8c2f6b1e47`;
+const DIAG_SERVICE = uuid(1), DIAG_STATUS = uuid(2), DIAG_LIVE = uuid(3), DIAG_CONTROL = uuid(4);
+const STATUS_VERSION = 4;
+const VALVE_VID = 0x28de, CONTROLLER_PID = 0x1102;
+const VALVE_BLE_LPC = 0x5b0f21bd;   // Valve's BLE main-chip firmware the gamepad flash installs
+
+const FLAGS = [
+  [0x01, 'connected'], [0x02, 'encrypted'], [0x04, 'HID reporting'], [0x08, 'bonded host'],
+  [0x10, 'bond storage ok'], [0x20, 'lizard mode seen'], [0x40, 'advertising'], [0x80, 'dozing'],
+];
+
+// Valve button bits, as SDL's STEAM_*_MASK. The last two are touch, not buttons.
+const BUTTONS = [
+  [0x000080, 'A'], [0x000020, 'B'], [0x000040, 'X'], [0x000010, 'Y'],
+  [0x000008, 'LB'], [0x000004, 'RB'], [0x000002, 'LT click'], [0x000001, 'RT click'],
+  [0x001000, 'Back'], [0x004000, 'Start'], [0x002000, 'Steam'], [0x400000, 'Stick click'],
+  [0x000100, 'D-pad ↑'], [0x000800, 'D-pad ↓'], [0x000400, 'D-pad ←'], [0x000200, 'D-pad →'],
+  [0x008000, 'L grip'], [0x010000, 'R grip'], [0x020000, 'L pad click'], [0x040000, 'R pad click'],
+  [0x080000, 'L pad touch'], [0x100000, 'R pad touch'],
+];
+
+const RESET_REASONS = [
+  [0x1, 'reset pin'], [0x2, 'watchdog'], [0x4, 'soft reset'], [0x8, 'CPU lockup'],
+  [0x10000, 'wake from OFF'], [0x20000, 'LPCOMP'], [0x40000, 'debug'],
+];
+
+const $ = (id) => document.getElementById(id);
+const hex = (bytes) => Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join(' ');
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+const logLines = [];
+function log(msg) {
+  logLines.push(`${new Date().toLocaleTimeString()}  ${msg}`);
+  if (logLines.length > 200) logLines.shift();
+  $('log').textContent = logLines.join('\n');
+  $('log').scrollTop = $('log').scrollHeight;
+}
+
+// Per-viewer progress survives a reload, but the page works without storage.
+const store = {
+  get(key, fallback) { try { const v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); } catch { return fallback; } },
+  set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode */ } },
+};
+
+// ---- Measured facts the guide checks against --------------------------------
+
+const facts = {
+  build: null,          // { build: '0x…', unix, bytes } from fw_images/gamepad/build.json
+  usbInfo: null,        // { firmwareRev, radioRev } read over WebHID
+  status: null,         // last diagnostics status
+  seenButtons: 0,       // Valve button bits seen in the live stream
+  stickMoved: false, rpadMoved: false, ltMax: 0, rtMax: 0,
+  gamepadId: null, gpSeenButtons: new Set(), gpAxesMoved: new Set(),
+};
+
+fetch('fw_images/gamepad/build.json', { cache: 'no-store' })
+  .then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status))))
+  .then((b) => {
+    facts.build = b;
+    $('buildLine').innerHTML = `Latest release: radio build <code>${esc(b.build)}</code>, ` +
+      `built ${new Date(b.unix * 1000).toLocaleString()}.`;
+    renderGuide();
+  })
+  .catch(() => { $('buildLine').textContent = 'Could not load build info; step 2 cannot check the radio version.'; });
+
+// ---- The guide ----------------------------------------------------------------
+
+const TOOL = 'https://steamcontroller.tools/';
+
+const STEPS = [
+  {
+    id: 'flash',
+    title: 'Flash the gamepad firmware',
+    body: () => `
+      <ol>
+        <li>Close Steam on this computer; it grabs the controller and fights the flash tool.</li>
+        <li>Plug the controller in by USB and open the <a href="${TOOL}" target="_blank" rel="noopener">flash tool</a>.</li>
+        <li>Choose <b>BLE Gamepad (experimental)</b> and start the flash. Chrome asks for device permission several
+          times as the controller switches modes; pick the Steam Controller each time.</li>
+      </ol>
+      <div class="expect">The flash completes. If the controller had Production firmware, the tool first installs
+        Valve's BLE firmware on the main chip to reach the radio. That is normal.</div>
+      <p><b>If it fails:</b> copy the flash tool's log into a GitHub issue. The controller is fine; flash <b>BLE</b> to restore it.</p>`,
+  },
+  {
+    id: 'usb',
+    title: 'Check the radio over USB',
+    body: () => {
+      const want = facts.build ? facts.build.build : '(build info not loaded)';
+      return `
+      <p>Keep the controller plugged in. Close the flash tool tab first, because only one page can talk to the controller over USB.</p>
+      <div class="row"><button class="primary" id="usbRead">Read versions over USB</button></div>
+      <div class="status-line" id="usbResult">${usbResultHtml()}</div>
+      <div class="expect">Radio <code>${esc(want)}</code>. Valve's main-chip firmware asked our radio for its version over
+        the internal UART, and our radio answered. That one value proves the radio boots, the UART pins and baud rate are
+        right, and messages work in both directions.</div>
+      <table><tr><th>You see</th><th>Meaning</th></tr>
+        <tr><td>Radio matches</td><td>Pass</td></tr>
+        <tr><td>Radio <code>N/A</code></td><td>Read again once. Still N/A: the radio is not answering. Carry on to step 3
+          anyway; it tells a dead radio from a UART problem.</td></tr>
+        <tr><td>Any other radio value</td><td>An older radio image is running: the flash did not take.</td></tr>
+        <tr><td>Firmware is not <code>0x5b0f21bd</code></td><td>The main chip does not have Valve's BLE firmware:
+          the flash did not take.</td></tr>
+      </table>`;
+    },
+    auto: () => {
+      if (!facts.usbInfo || !facts.build) return null;
+      return facts.usbInfo.radioRev === parseInt(facts.build.build, 16) && facts.usbInfo.firmwareRev === VALVE_BLE_LPC;
+    },
+  },
+  {
+    id: 'ble',
+    title: 'Switch to Bluetooth mode',
+    body: () => `
+      <ol>
+        <li>Unplug USB. The controller only streams to the radio on batteries.</li>
+        <li>Turn the controller off: hold the Steam button until the light goes out.</li>
+        <li>Turn it on in Bluetooth mode: <b>hold Y, then press the Steam button</b>. The mode is remembered, so later
+          a plain Steam press is enough.</li>
+      </ol>
+      <div class="expect">"Steam Controller" shows up when a phone or computer scans for Bluetooth devices.
+        <b>Don't pair it from the OS yet</b>; the next step needs it unpaired.</div>
+      <p><b>If nothing shows up:</b> the radio is not running, or it faults at boot. Flash BLE, then the gamepad
+        firmware again from step 1, and send the flash tool's log.</p>`,
+  },
+  {
+    id: 'diag',
+    title: 'Radio diagnostics over Bluetooth',
+    body: () => `
+      <p>Click <b>Connect to controller</b> (below, or here) and pick "Steam Controller".</p>
+      <div class="row"><button class="primary" data-action="connect">Connect to controller</button>
+        <button data-action="buzz">Buzz</button> <a href="#diag">details</a> · <a href="#live">live view</a></div>
+      <ul class="checks">${diagChecksHtml()}</ul>
+      <p>Then press <b>every</b> button, move the stick, drag a finger on both pads and pull both triggers. Watch the
+        <a href="#live">live view</a>: each input lights on its own and nothing else lights with it. Also press <b>Buzz</b>:
+        both pads should buzz, which proves the radio can send commands to the main chip.</p>
+      <table><tr><th>You see</th><th>Meaning</th></tr>
+        <tr><td><code>not BLE mode</code></td><td>Dongle mode or USB: the radio does not decode or change anything
+          then. Unplug USB, power off, then on again holding Y. (If the controller is in Bluetooth mode but the pin
+          check misread it, the radio notices from the data within a second and the pill turns green.)</td></tr>
+        <tr><td>Bytes from LPC stays 0</td><td>The main chip sends nothing: still on USB, or a pin problem.</td></tr>
+        <tr><td>Bytes climbing, frames 0</td><td>Framing or baud problem.</td></tr>
+        <tr><td>UART errors climbing</td><td>Baud or signal problem.</td></tr>
+        <tr><td>Lizard payloads climbing, no state records</td><td>The main chip ignores the lizard-off command. Press Resync, then send the report.</td></tr>
+        <tr><td>Wrong button lights</td><td>Button layout differs from expected. Write down which one lit what.</td></tr>
+        <tr><td>Last fault shows a file:line</td><td>The radio reset on an error. Send the report.</td></tr>
+        <tr><td>Keeps disconnecting</td><td>Reset loop. Send the report, including Last reset.</td></tr>
+      </table>
+      <p>When done, click <b>Disconnect</b>.</p>`,
+    auto: () => {
+      const s = facts.status;
+      if (!s) return null;
+      return bleMode(s) && s.recOk > 0 && s.recBad === 0 && !s.faultCode && !s.faultLine;
+    },
+  },
+  {
+    id: 'pc',
+    title: 'This computer as the host',
+    body: () => `
+      <ol>
+        <li>Pair from the OS Bluetooth settings (Windows: Add device › Bluetooth; macOS: System Settings › Bluetooth).</li>
+        <li>Press a button, then check the <a href="#gamepad">Gamepad API panel</a>.</li>
+      </ol>
+      <ul class="checks">${pcChecksHtml()}</ul>
+      <div class="expect">Each physical button lights exactly one entry. The stick moves one pair of axes, the right pad
+        another pair, and the triggers move analog axes.</div>
+      <p><b>Before moving on, remove the controller</b> from this computer's Bluetooth list. Otherwise it may reconnect
+        here instead of to the TV.</p>`,
+    auto: () => (facts.gamepadId ? facts.gpSeenButtons.size >= 13 && facts.gpAxesMoved.size >= 4 : null),
+  },
+  {
+    id: 'tv',
+    title: 'Android TV',
+    body: () => `
+      <p>On the TV: Settings › Remotes &amp; Accessories › Pair accessory. With the controller on, pick "Steam Controller".</p>
+      <ul class="checks">${manualChecksHtml('tv', [
+        'It pairs, shown with a gamepad icon',
+        'Left pad arrows (clicked) move around the menus',
+        'A selects',
+        'B goes back',
+        'Joystick works in a game or tester app',
+        'Right pad acts as the right stick',
+        'Both triggers are analog (half pull = half)',
+        'Bumpers, Start, Back and Steam do something sensible',
+      ])}</ul>
+      <p>Write down anything that did nothing or the wrong thing. A gamepad-tester app on the TV helps.</p>`,
+  },
+  {
+    id: 'reconnect',
+    title: 'Reconnect on its own',
+    body: () => `
+      <ul class="checks">${manualChecksHtml('reconnect', [
+        'Controller off (hold Steam), then on (press Steam): it reconnects to the TV within seconds, no pairing menu',
+        'TV off and on, then press Steam: it reconnects again',
+      ])}</ul>`,
+  },
+];
+
+let guide = store.get('scGuide', {});   // { stepId: { result: 'pass'|'fail', note, checks: {} } }
+function stepState(id) { return (guide[id] = guide[id] || { result: null, note: '', checks: {} }); }
+function saveGuide() { store.set('scGuide', guide); }
+
+function mark(ok) { return ok === true ? '<span class="mark ok">✓</span>' : ok === false ? '<span class="mark bad">✗</span>' : '<span class="mark">·</span>'; }
+
+function usbResultHtml() {
+  const u = facts.usbInfo;
+  if (!u) return '';
+  const fmt = (v) => (v ? `0x${v.toString(16)} · ${new Date(v * 1000).toLocaleDateString()}` : 'N/A');
+  const want = facts.build ? parseInt(facts.build.build, 16) : null;
+  const radioOk = want !== null && u.radioRev === want;
+  const lpcOk = u.firmwareRev === VALVE_BLE_LPC;
+  return `${mark(lpcOk)} Firmware <code>${fmt(u.firmwareRev)}</code> &nbsp; ${mark(radioOk)} Radio <code>${fmt(u.radioRev)}</code>`;
+}
+
+function diagChecksHtml() {
+  const s = facts.status;
+  const all = BUTTONS.slice(0, 20).reduce((m, [bit]) => m | bit, 0);   // everything but touch
+  const seen = BUTTONS.slice(0, 20).filter(([bit]) => facts.seenButtons & bit).length;
+  const rows = [
+    [s ? bleMode(s) : null, 'Controller is in Bluetooth mode'],
+    [s ? s.recOk > 0 : null, `State records arriving${s ? ` (${s.recOk})` : ''}`],
+    [s ? s.recBad === 0 : null, 'No bad records'],
+    [s ? !(s.faultCode || s.faultLine) : null, 'No fault since the last reset'],
+    [facts.seenButtons ? (facts.seenButtons & all) === all : null, `All 20 buttons seen (${seen} so far)`],
+    [facts.stickMoved || null, 'Joystick moved'],
+    [facts.rpadMoved || null, 'Right pad touched'],
+    [facts.ltMax > 200 && facts.rtMax > 200 ? true : null, `Both triggers pulled fully (${facts.ltMax}, ${facts.rtMax} of 255)`],
+  ];
+  return rows.map(([ok, text]) => `<li>${mark(ok)}<span>${text}</span></li>`).join('');
+}
+
+function pcChecksHtml() {
+  return [
+    [facts.gamepadId ? true : null, facts.gamepadId ? `Seen as "${esc(facts.gamepadId)}"` : 'Gamepad detected by the browser'],
+    [facts.gpSeenButtons.size >= 13 ? true : null, `Buttons pressed: ${facts.gpSeenButtons.size} distinct (at least 13 expected)`],
+    [facts.gpAxesMoved.size >= 4 ? true : null, `Axes moved: ${facts.gpAxesMoved.size} (stick, right pad and triggers make 6)`],
+  ].map(([ok, text]) => `<li>${mark(ok)}<span>${text}</span></li>`).join('');
+}
+
+function manualChecksHtml(stepId, items) {
+  const st = stepState(stepId);
+  return items.map((text, i) =>
+    `<li><label><input type="checkbox" data-step="${stepId}" data-check="${i}" ${st.checks[i] ? 'checked' : ''}>` +
+    `<span>${esc(text)}</span></label></li>`).join('');
+}
+
+let openStep = null;   // which card the user has open; kept across re-renders
+
+function renderGuide() {
+  const passed = STEPS.filter((s) => stepState(s.id).result === 'pass').length;
+  $('progressText').textContent = `${passed} of ${STEPS.length} passed`;
+  $('progressFill').style.width = `${(passed / STEPS.length) * 100}%`;
+  const current = STEPS.find((s) => stepState(s.id).result !== 'pass');
+  if (openStep === null) openStep = current ? current.id : null;
+
+  // Preserve typing: re-rendering replaces the textareas, so keep focus and caret.
+  const active = document.activeElement;
+  const focusId = active && active.dataset && active.dataset.note;
+  const caret = focusId ? active.selectionStart : 0;
+
+  $('steps').innerHTML = STEPS.map((step, i) => {
+    const st = stepState(step.id);
+    const auto = step.auto ? step.auto() : null;
+    const cls = [st.result || '', current && current.id === step.id ? 'current' : ''].join(' ');
+    const chip = st.result === 'pass' ? 'passed' : st.result === 'fail' ? 'problem' : auto === true ? 'looks good' : '';
+    return `<details class="step ${cls}" data-step="${step.id}" ${openStep === step.id ? 'open' : ''}>
+      <summary><span class="num">${i + 1}</span><span class="step-title">${step.title}</span><span class="chip">${chip}</span></summary>
+      <div class="step-body">
+        ${step.body()}
+        ${auto === true && st.result !== 'pass' ? '<p class="ok">The automatic checks for this step pass. Confirm below.</p>' : ''}
+        ${auto === false ? '<p class="warn">The automatic checks for this step do not pass yet.</p>' : ''}
+        <textarea data-note="${step.id}" placeholder="Notes: anything odd, which button did what…">${esc(st.note)}</textarea>
+        <div class="verdict">
+          <button class="pass ${st.result === 'pass' ? 'chosen' : ''}" data-result="pass" data-step="${step.id}">Works</button>
+          <button class="fail ${st.result === 'fail' ? 'chosen' : ''}" data-result="fail" data-step="${step.id}">Problem</button>
+          ${st.result === 'fail' ? '<span class="note" style="margin:0">Click <a href="#report">Copy report</a> and attach it to a GitHub issue.</span>' : ''}
+        </div>
+      </div>
+    </details>`;
+  }).join('');
+
+  if (focusId) {
+    const el = document.querySelector(`textarea[data-note="${focusId}"]`);
+    if (el) { el.focus(); el.setSelectionRange(caret, caret); }
+  }
+}
+
+// One delegated listener for everything inside the guide.
+$('steps').addEventListener('click', (e) => {
+  const t = e.target;
+  if (t.dataset.result) {
+    const st = stepState(t.dataset.step);
+    st.result = st.result === t.dataset.result ? null : t.dataset.result;
+    saveGuide();
+    log(`step "${t.dataset.step}": ${st.result || 'unmarked'}`);
+    if (st.result === 'pass') {
+      const next = STEPS[STEPS.findIndex((s) => s.id === t.dataset.step) + 1];
+      openStep = next ? next.id : null;
+    }
+    renderGuide();
+  } else if (t.id === 'usbRead') {
+    readUsbInfo();
+  } else if (t.dataset.action === 'connect') {
+    $('connect').click();
+  } else if (t.dataset.action === 'buzz') {
+    if (controlChar) command(2, 'buzz'); else log('connect first, then buzz');
+  }
+});
+$('steps').addEventListener('toggle', (e) => {
+  if (e.target.open) openStep = e.target.dataset.step;
+  else if (openStep === e.target.dataset.step) openStep = '';
+}, true);
+$('steps').addEventListener('input', (e) => {
+  if (e.target.dataset.note) { stepState(e.target.dataset.note).note = e.target.value; saveGuide(); }
+});
+$('steps').addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.dataset.check !== undefined) { stepState(t.dataset.step).checks[t.dataset.check] = t.checked; saveGuide(); }
+});
+$('resetGuide').onclick = () => {
+  if (!confirm('Clear all step results and notes?')) return;
+  guide = {}; saveGuide(); openStep = null;
+  facts.seenButtons = 0; facts.stickMoved = facts.rpadMoved = false; facts.ltMax = facts.rtMax = 0;
+  facts.gpSeenButtons.clear(); facts.gpAxesMoved.clear();
+  for (const el of $('liveButtons').children) el.classList.remove('seen');
+  renderGuide();
+};
+
+// Automatic checks change as data arrives; refresh the guide at a calm rate
+// rather than on every notification, and not while the user is typing.
+let guideDirty = false;
+setInterval(() => {
+  if (!guideDirty) return;
+  if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') return;
+  guideDirty = false;
+  renderGuide();
+}, 500);
+
+// ---- USB: versions via Valve's 0x83 attribute request -------------------------
+
+async function readUsbInfo() {
+  if (!navigator.hid) { $('usbResult').innerHTML = '<span class="bad">This browser has no WebHID. Use Chrome or Edge on a computer.</span>'; return; }
+  const isVendor = (d) => d.vendorId === VALVE_VID && d.productId === CONTROLLER_PID &&
+    d.collections.some((c) => c.usagePage === 0xff00);
+  let dev = null;
+  try {
+    dev = (await navigator.hid.getDevices()).find(isVendor) || null;
+    if (!dev) {
+      const picked = await navigator.hid.requestDevice({ filters: [{ vendorId: VALVE_VID, productId: CONTROLLER_PID, usagePage: 0xff00 }] });
+      dev = picked.find(isVendor) || picked[0] || null;
+    }
+    if (!dev) { $('usbResult').textContent = 'No controller selected.'; return; }
+    if (!dev.opened) await dev.open();
+
+    // Ask twice if needed: a radio version of 0 makes the main chip query the
+    // radio, and the answer is there on the next request.
+    let info = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      info = await attributeRequest(dev);
+      if (info.radioRev !== 0) break;
+      await sleep(600);
+    }
+    facts.usbInfo = info;
+    log(`USB: firmware 0x${info.firmwareRev.toString(16)}, radio 0x${info.radioRev.toString(16)}`);
+  } catch (e) {
+    $('usbResult').innerHTML = `<span class="bad">${esc(e.message)}</span> If the flash tool is still open in another tab, close it and try again.`;
+    log(`USB read failed: ${e.message}`);
+    return;
+  } finally {
+    if (dev && dev.opened) await dev.close().catch(() => {});
+  }
+  renderGuide();
+}
+
+async function attributeRequest(dev) {
+  const req = new Uint8Array(64);
+  req[0] = 0x83;   // ControllerInfoRequest, as the flash tool sends it
+  await dev.sendFeatureReport(0, req);
+  for (let i = 0; i < 15; i++) {
+    const v = await dev.receiveFeatureReport(0);
+    const a = new Uint8Array(v.buffer, v.byteOffset, v.byteLength);
+    if (a.some((b) => b !== 0)) {
+      if (a[0] !== 0x83) throw new Error(`unexpected reply 0x${a[0].toString(16)}`);
+      return { firmwareRev: v.getUint32(23, true), radioRev: v.getUint32(28, true) };
+    }
+    await sleep(100);
+  }
+  throw new Error('the controller did not answer');
+}
+
+// ---- Web Bluetooth -------------------------------------------------------------
+
+let device = null, statusChar = null, controlChar = null, pollTimer = null;
+let lastLive = null, lastLiveAt = 0;
+
+if (!navigator.bluetooth) {
+  $('btSupport').innerHTML = 'This browser has no Web Bluetooth. Use Chrome or Edge on Windows, macOS, ChromeOS or Android ' +
+    '(on Linux, enable chrome://flags/#enable-experimental-web-platform-features). ' +
+    'The nRF Connect phone app can read the same service.';
+  $('connect').disabled = true;
+}
+
+function setConnectedUi(on) {
+  $('connect').disabled = on || !navigator.bluetooth;
+  $('disconnect').disabled = !on;
+  for (const id of ['cmdResync', 'cmdHaptic']) $(id).disabled = !on;
+}
+
+$('connect').onclick = async () => {
+  if (!navigator.bluetooth) return;
+  try {
+    device = await navigator.bluetooth.requestDevice({
+      filters: [{ services: [DIAG_SERVICE] }, { name: 'Steam Controller' }],
+      optionalServices: [DIAG_SERVICE],
+    });
+    device.addEventListener('gattserverdisconnected', onDisconnected);
+    $('btStatus').textContent = `Connecting to ${device.name || 'device'}…`;
+    const server = await device.gatt.connect();
+    const service = await server.getPrimaryService(DIAG_SERVICE);
+    statusChar = await service.getCharacteristic(DIAG_STATUS);
+    controlChar = await service.getCharacteristic(DIAG_CONTROL);
+    const liveChar = await service.getCharacteristic(DIAG_LIVE);
+    liveChar.addEventListener('characteristicvaluechanged', (e) => onLive(e.target.value));
+    await liveChar.startNotifications();
+    setConnectedUi(true);
+    $('btStatus').innerHTML = '<span class="ok">Connected.</span> Reading diagnostics.';
+    log(`connected to ${device.name}`);
+    await pollStatus();
+    pollTimer = setInterval(pollStatus, 700);
+  } catch (e) {
+    $('btStatus').innerHTML = `<span class="bad">${esc(e.message)}</span>`;
+    log(`connect failed: ${e.message}`);
+  }
+};
+
+$('disconnect').onclick = () => device && device.gatt.connected && device.gatt.disconnect();
+
+function onDisconnected() {
+  clearInterval(pollTimer);
+  controlChar = null;
+  setConnectedUi(false);
+  $('btStatus').textContent = 'Disconnected.';
+  log('disconnected');
+}
+
+async function pollStatus() {
+  try {
+    renderStatus(parseStatus(await statusChar.readValue()));
+  } catch (e) {
+    log(`status read failed: ${e.message}`);
+  }
+}
+
+async function command(code, label) {
+  try {
+    await controlChar.writeValue(new Uint8Array([code]));
+    log(`sent command: ${label}`);
+  } catch (e) {
+    log(`command ${label} failed: ${e.message}`);
+  }
+}
+$('cmdResync').onclick = () => command(1, 'resync');
+$('cmdHaptic').onclick = () => command(2, 'buzz');
+
+// diag_status_t.mode_strap bits (DIAG_MODE_*): strap read high, BLE mode in
+// effect, mode carried over a soft reset, BLE mode recognised from the stream.
+const bleMode = (s) => (s.modeStrap & 0x02) !== 0;
+function modeDetail(s) {
+  const parts = [];
+  parts.push(s.modeStrap & 0x01 ? 'strap high' : 'strap low');
+  if (s.modeStrap & 0x04) parts.push('carried over a soft reset');
+  if (s.modeStrap & 0x08) parts.push('recognised from the data');
+  return `${bleMode(s) ? 'BLE' : 'not BLE'} (${parts.join(', ')})`;
+}
+
+function parseStatus(v) {
+  const u8 = (o) => v.getUint8(o), u16 = (o) => v.getUint16(o, true), u32 = (o) => v.getUint32(o, true);
+  const bytes = (o, n) => new Uint8Array(v.buffer, v.byteOffset + o, n);
+  if (v.byteLength < 88) return { error: `status is ${v.byteLength} bytes, expected 88` };
+  const hostLen = u8(51);
+  return {
+    version: u8(0), modeStrap: u8(1), flags: u8(2), resetReason: u32(4), uptimeMs: u32(8),
+    rxBytes: u32(12), rxFrames: u32(16), rxUartErrors: u16(20), rxDropped: u16(22),
+    rxQueueFull: u16(24), txFull: u16(26), recOk: u16(28), recBad: u16(30), recLizard: u16(32),
+    resyncs: u16(34), hostMsgs: u16(36), featureReplies: u16(38), otherOps: u16(40),
+    lastOtherOp: u8(42), lastRecExtra: u8(43), lastRecFlags: u16(44), reportsSent: u16(46),
+    reportErrors: u16(48), lpcQueries: u8(50), lastHostMsgLen: hostLen,
+    lastHostMsg: hex(bytes(52, Math.min(hostLen, 12))), lastFeatureReply: hex(bytes(64, 8)),
+    faultCode: u32(72), faultLine: u16(76),
+    faultFile: new TextDecoder().decode(bytes(78, 10)).replace(/\0.*$/, ''),
+    // Version 2
+    rxOversize: v.byteLength >= 92 ? u16(88) : null,
+    lpcTxDropped: v.byteLength >= 92 ? u16(90) : null,
+    // Version 4: raw capture of what the LPC sent
+    ...(v.byteLength >= 161 ? {
+      rxStarts: u16(92), rxEnds: u16(94), rxErrorSrc: u8(96),
+      rxFirst: hex(bytes(97, Math.min(32, u32(12)))),
+      rxLast: hex(ringTail(bytes(129, 32), u32(12))),
+    } : {}),
+  };
+}
+
+/** The ring holds byte n at n % 32; return the last min(32, total) in order. */
+function ringTail(ring, total) {
+  const n = Math.min(32, total), out = new Uint8Array(n);
+  for (let i = 0; i < n; i++) out[i] = ring[(total - n + i) % 32];
+  return out;
+}
+
+function kv(el, rows) {
+  el.innerHTML = rows.map(([k, v, cls]) => `<dt>${k}</dt><dd class="${cls || ''}">${esc(v)}</dd>`).join('');
+}
+
+function renderStatus(s) {
+  if (s.error) { log(s.error); return; }
+  const prev = facts.status;
+  facts.status = s;
+  guideDirty = true;
+  if (s.version !== STATUS_VERSION) log(`warning: status version ${s.version}, page expects ${STATUS_VERSION}`);
+
+  $('flags').innerHTML = FLAGS.map(([bit, name]) => {
+    const on = (s.flags & bit) !== 0;
+    const cls = on ? (name === 'lizard mode seen' || name === 'dozing' ? 'warn' : 'on') : '';
+    return `<span class="pill ${cls}">${name}</span>`;
+  }).join('') + `<span class="pill ${bleMode(s) ? 'on' : 'bad'}">${bleMode(s) ? 'BLE mode' : 'not BLE mode'}</span>`;
+
+  const reasons = RESET_REASONS.filter(([b]) => s.resetReason & b).map(([, n]) => n);
+  const fault = s.faultCode || s.faultLine ? `0x${s.faultCode.toString(16)} at ${s.faultFile}:${s.faultLine}` : 'none';
+  const secs = prev ? (s.uptimeMs - prev.uptimeMs) / 1000 : 0;
+  const rate = prev && secs > 0 ? Math.round(((s.recOk - prev.recOk + 65536) % 65536) / secs) : '–';
+
+  kv($('health'), [
+    ['Uptime', `${(s.uptimeMs / 1000).toFixed(1)} s`],
+    ['Mode', modeDetail(s), bleMode(s) ? '' : 'warn'],
+    ['Last reset', reasons.length ? reasons.join(', ') : 'power on'],
+    ['Last fault', fault, s.faultCode || s.faultLine ? 'bad' : ''],
+    ['Bytes from LPC', s.rxBytes, s.rxBytes ? '' : 'bad'],
+    ['Frames from LPC', s.rxFrames],
+    ['UART errors', s.rxUartErrors, s.rxUartErrors ? 'warn' : ''],
+    ['Frames dropped', s.rxDropped, s.rxDropped ? 'warn' : ''],
+    ['Queue overflows', s.rxQueueFull, s.rxQueueFull ? 'warn' : ''],
+    ['Sends refused', s.txFull, s.txFull ? 'warn' : ''],
+    ['Oversize frames (harmless)', s.rxOversize ?? '–'],
+    ['Queued sends lost', s.lpcTxDropped ?? '–', s.lpcTxDropped ? 'warn' : ''],
+    ['LPC queries answered', s.lpcQueries],
+    ...(s.rxFirst !== undefined ? [
+      ['START / END bytes', `${s.rxStarts} / ${s.rxEnds}`],
+      ['UART error bits', `0x${s.rxErrorSrc.toString(16)}`],
+      ['First bytes', s.rxFirst || '–'],
+      ['Last bytes', s.rxLast || '–'],
+    ] : []),
+  ]);
+
+  kv($('decoder'), [
+    ['State records', `${s.recOk}  (${rate}/s)`, s.recOk ? 'ok' : 'bad'],
+    ['Lizard payloads', s.recLizard, s.recLizard && !s.recOk ? 'bad' : ''],
+    ['Bad records', s.recBad, s.recBad ? 'warn' : ''],
+    ['Resyncs sent', s.resyncs],
+    ['Last chunk flags', `0x${s.lastRecFlags.toString(16).padStart(4, '0')}  (+${s.lastRecExtra} trailing)`],
+    ['0x55 host messages', `${s.hostMsgs}  last: ${s.lastHostMsg || '–'} (${s.lastHostMsgLen} B)`],
+    ['Feature replies', `${s.featureReplies}  last: ${s.lastFeatureReply}`],
+    ['Other opcodes', `${s.otherOps}  last: 0x${s.lastOtherOp.toString(16)}`],
+    ['HID reports sent', s.reportsSent],
+    ['HID send errors', s.reportErrors, s.reportErrors ? 'warn' : ''],
+  ]);
+}
+
+// ---- Live state ------------------------------------------------------------------
+
+$('liveButtons').innerHTML = BUTTONS.map(([bit, name]) => `<div class="btn" data-bit="${bit}">${name}</div>`).join('');
+
+function padSvg(el) {
+  el.innerHTML = '<circle r="100" fill="none" stroke="rgba(255,255,255,0.15)"/>' +
+    '<line x1="-100" x2="100" stroke="rgba(255,255,255,0.08)"/><line y1="-100" y2="100" stroke="rgba(255,255,255,0.08)"/>' +
+    '<circle r="9" fill="#1a9fff" class="dot"/>';
+}
+['padStick', 'padLeft', 'padRight'].forEach((id) => padSvg($(id)));
+
+function setPad(id, valId, x, y, active) {
+  const dot = $(id).querySelector('.dot');
+  dot.setAttribute('cx', (x / 32767 * 100).toFixed(1));
+  dot.setAttribute('cy', (-y / 32767 * 100).toFixed(1));   // controller Y grows upwards
+  dot.setAttribute('opacity', active ? 1 : 0.3);
+  $(valId).textContent = `${x}, ${y}`;
+}
+
+function onLive(v) {
+  if (v.byteLength < 20) return;
+  const buttons = v.getUint8(2) | (v.getUint8(3) << 8) | (v.getUint8(4) << 16);
+  const lt = v.getUint8(5), rt = v.getUint8(6);
+  const i16 = (o) => v.getInt16(o, true);
+  lastLive = { buttons, lt, rt, stick: [i16(7), i16(9)], lpad: [i16(11), i16(13)], rpad: [i16(15), i16(17)] };
+  lastLiveAt = Date.now();
+
+  if ((buttons & ~facts.seenButtons) !== 0) { facts.seenButtons |= buttons; guideDirty = true; }
+  if (!facts.stickMoved && (Math.abs(lastLive.stick[0]) > 20000 || Math.abs(lastLive.stick[1]) > 20000)) { facts.stickMoved = true; guideDirty = true; }
+  if (!facts.rpadMoved && (buttons & 0x100000)) { facts.rpadMoved = true; guideDirty = true; }
+  if (lt > facts.ltMax || rt > facts.rtMax) { facts.ltMax = Math.max(facts.ltMax, lt); facts.rtMax = Math.max(facts.rtMax, rt); guideDirty = true; }
+
+  for (const el of $('liveButtons').children) {
+    el.classList.toggle('down', (buttons & +el.dataset.bit) !== 0);
+    el.classList.toggle('seen', (facts.seenButtons & +el.dataset.bit) !== 0);
+  }
+  setPad('padStick', 'valStick', ...lastLive.stick, true);
+  setPad('padLeft', 'valLeft', ...lastLive.lpad, (buttons & 0x080000) !== 0);
+  setPad('padRight', 'valRight', ...lastLive.rpad, (buttons & 0x100000) !== 0);
+  $('barLT').style.width = `${lt / 2.55}%`; $('valLT').textContent = lt;
+  $('barRT').style.width = `${rt / 2.55}%`; $('valRT').textContent = rt;
+}
+
+// ---- Gamepad API -------------------------------------------------------------------
+
+let gpIndex = null;
+window.addEventListener('gamepadconnected', (e) => {
+  gpIndex = e.gamepad.index;
+  facts.gamepadId = e.gamepad.id;
+  guideDirty = true;
+  log(`gamepad connected: "${e.gamepad.id}" mapping="${e.gamepad.mapping}" ` +
+      `${e.gamepad.buttons.length} buttons, ${e.gamepad.axes.length} axes`);
+});
+window.addEventListener('gamepaddisconnected', (e) => {
+  if (e.gamepad.index === gpIndex) gpIndex = null;
+  log(`gamepad disconnected: "${e.gamepad.id}"`);
+});
+
+// Some axes rest away from zero (a trigger at -1, say), so "moved" means moved
+// away from where the axis was first seen.
+const axisRest = new Map();
+function renderGamepad() {
+  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  const gp = gpIndex !== null ? pads[gpIndex] : Array.from(pads).find(Boolean);
+  if (gp) {
+    gp.buttons.forEach((b, i) => { if (b.pressed && !facts.gpSeenButtons.has(i)) { facts.gpSeenButtons.add(i); guideDirty = true; } });
+    gp.axes.forEach((a, i) => {
+      const key = `${gp.index}:${i}`;
+      if (!axisRest.has(key)) axisRest.set(key, a);
+      if (Math.abs(a - axisRest.get(key)) > 0.6 && !facts.gpAxesMoved.has(i)) { facts.gpAxesMoved.add(i); guideDirty = true; }
+    });
+    $('gpStatus').innerHTML = `<span class="ok">${esc(gp.id)}</span> · mapping: ${gp.mapping || 'none (raw)'}`;
+    const btns = gp.buttons.map((b, i) =>
+      `<div class="btn ${b.pressed ? 'down' : ''} ${facts.gpSeenButtons.has(i) ? 'seen' : ''}">${i}` +
+      `${b.value > 0 && b.value < 1 ? ` · ${b.value.toFixed(2)}` : ''}</div>`).join('');
+    const axes = gp.axes.map((a, i) =>
+      `<div class="bar axis">Axis ${i}: ${a.toFixed(3)}<div class="track"><div class="fill" style="` +
+      `${a < 0 ? `left:${50 + a * 50}%;` : ''}width:${Math.abs(a) * 50}%"></div></div></div>`).join('');
+    $('gpView').innerHTML = `<div class="buttons">${btns}</div><div class="bars" style="margin-top:12px">${axes}</div>`;
+  }
+  requestAnimationFrame(renderGamepad);
+}
+requestAnimationFrame(renderGamepad);
+
+// ---- Report ----------------------------------------------------------------------
+
+$('copyReport').onclick = async () => {
+  const pads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(Boolean) : [];
+  const report = {
+    when: new Date().toISOString(),
+    userAgent: navigator.userAgent,
+    build: facts.build,
+    usb: facts.usbInfo && {
+      firmwareRev: `0x${facts.usbInfo.firmwareRev.toString(16)}`,
+      radioRev: `0x${facts.usbInfo.radioRev.toString(16)}`,
+    },
+    steps: STEPS.map((s) => ({ step: s.id, ...stepState(s.id), auto: s.auto ? s.auto() : undefined })),
+    status: facts.status,
+    live: lastLive ? { ...lastLive, ageMs: Date.now() - lastLiveAt } : null,
+    buttonsSeen: `0x${facts.seenButtons.toString(16)}`,
+    triggersMax: [facts.ltMax, facts.rtMax],
+    gamepads: pads.map((g) => ({
+      id: g.id, mapping: g.mapping,
+      pressed: g.buttons.map((b, i) => (b.pressed ? i : null)).filter((i) => i !== null),
+      axes: g.axes.map((a) => +a.toFixed(3)),
+    })),
+    gamepadButtonsSeen: [...facts.gpSeenButtons].sort((a, b) => a - b),
+    gamepadAxesMoved: [...facts.gpAxesMoved].sort((a, b) => a - b),
+    log: logLines.slice(-40),
+  };
+  const text = JSON.stringify(report, null, 1);
+  try {
+    await navigator.clipboard.writeText(text);
+    $('copyNote').textContent = 'Copied. Attach it to a GitHub issue.';
+  } catch {
+    $('log').textContent = text;
+    $('copyNote').textContent = 'Clipboard blocked; the report is in the box below, copy it by hand.';
+  }
+};
+
+renderGuide();
+log('test guide ready');
+</script>
+</body>
+</html>
